@@ -200,7 +200,7 @@ func PortForward(pfo *PortForwardOpts) error {
 
 	// Listen for pod is deleted
 	// @TODO need a test for this, does not seem to work as intended
-	// go pfo.ListenUntilPodDeleted(downstreamStopChannel, pod)
+	go pfo.StateWaiter.ListenUntilPodDeleted(downstreamStopChannel, pod)
 
 	p := pfo.Out.MakeProducer(localNamedEndPoint)
 
@@ -370,7 +370,7 @@ func (pfo *PortForwardOpts) String() string {
 
 type PodStateWaiter interface {
 	WaitUntilPodRunning(stopChannel <-chan struct{}) (*v1.Pod, error)
-	//ListenUntilPodDeleted(stopChannel <-chan struct{}, pod *v1.Pod)
+	ListenUntilPodDeleted(stopChannel <-chan struct{}, pod *v1.Pod)
 }
 
 type PodStateWaiterImpl struct {
@@ -410,9 +410,10 @@ func (p PortForwardHelperImpl) ForwardPorts(forwarder *portforward.PortForwarder
 func (operator PortForwardOptsHostsOperator) AddHosts() {
 
 	// We must not add multiple hosts entries for different ports on the same service
-	if operator.Pfo.getBrothersInPodsAmount() != 1 {
-		return
-	}
+	// if operator.Pfo.getBrothersInPodsAmount() != 1 {
+	// 	return
+	// }
+
 
 	operator.Pfo.HostFile.Lock()
 
